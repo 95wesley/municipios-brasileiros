@@ -242,6 +242,15 @@ Se os dados te ajudaram, você pode apoiar o projeto via Pix:
 
 - **Chave Pix (e-mail):** `we95sz@gmail.com`
 
+<p align="center">
+  <img src="docs/pix-qrcode.png" width="220" alt="QR code Pix R$ 5,00">
+</p>
+
+Pix copia e cola:
+```
+00020101021226700014br.gov.bcb.pix0116we95sz@gmail.com0228Apoio Municipios Brasileiros52040000530398654045.005802BR590895WESLEY6006BRASIL62070503***630447B4
+```
+
 ## Créditos e licença
 
 - Dados de municípios e UFs: [IBGE](https://www.ibge.gov.br/) e [SIAFI](https://www.gov.br/tesouronacional/pt-br/siafi).
