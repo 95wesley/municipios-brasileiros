@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://95wesley.github.io/municipios-brasileiros/sitemap.xml
