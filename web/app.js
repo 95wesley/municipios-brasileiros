@@ -25,6 +25,11 @@
     const DEFAULT_COLOR = '#94a3b8';
     const CAPITAL_COLOR = '#facc15';
     const EARTH_RADIUS_KM = 6371.0088;
+    const MAX_SEARCH_RESULTS = 8;
+
+    // Icons for the panel toggle button (inline SVG, so they follow the text colour).
+    const MINUS_ICON = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>';
+    const PLUS_ICON = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 
     // Above this many points, markers are drawn smaller to keep the map readable.
     const DENSE_THRESHOLD = 1000;
@@ -38,6 +43,8 @@
         fieldFilter: { field: 'nome', value: '' }, // empty value means "no field filter"
         ufVisibleOptions: [],   // options currently shown in the dropdown
         ufActiveIndex: -1,      // keyboard highlight in the dropdown
+        searchMatches: [],      // municipality suggestions for the search box
+        searchActive: -1,       // keyboard highlight in the suggestions
         map: null,
         mapLayer: null,
         userMarker: null,
@@ -48,7 +55,7 @@
         status: document.getElementById('status'),
         searchForm: document.getElementById('search-form'),
         searchInput: document.getElementById('search-input'),
-        datalist: document.getElementById('municipios-list'),
+        searchList: document.getElementById('search-list'),
         ufField: document.getElementById('uf-field'),
         ufBox: document.getElementById('uf-box'),
         ufChips: document.getElementById('uf-chips'),
@@ -188,14 +195,6 @@
             .sort((a, b) => a.codigo_uf - b.codigo_uf)
             .map((e) => ({ uf: e.uf, nome: e.nome, regiao: e.regiao }));
 
-        // Datalist powers the browser's built-in autocomplete for municipality names.
-        const fragment = document.createDocumentFragment();
-        for (const m of state.municipios) {
-            const option = document.createElement('option');
-            option.value = `${m.nome} - ${m.uf}`;
-            fragment.appendChild(option);
-        }
-        el.datalist.appendChild(fragment);
     }
 
     function initMap() {
@@ -424,6 +423,100 @@
         }
     }
 
+    // ---------- municipality search suggestions ----------
+
+    /** Up to MAX_SEARCH_RESULTS municipalities: names starting with the query first. */
+    function searchSuggestions(query) {
+        const needle = normalize(query.split(' - ')[0]);
+        if (!needle) return [];
+
+        const startsWith = [];
+        const contains = [];
+        for (const m of state.municipios) {
+            const name = normalize(m.nome);
+            if (name.startsWith(needle)) {
+                startsWith.push(m);
+            } else if (name.includes(needle)) {
+                contains.push(m);
+            }
+        }
+        return [...startsWith, ...contains].slice(0, MAX_SEARCH_RESULTS);
+    }
+
+    function openSearchList() {
+        renderSearchList();
+        el.searchList.classList.remove('hidden');
+        el.searchInput.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeSearchList() {
+        el.searchList.classList.add('hidden');
+        el.searchInput.setAttribute('aria-expanded', 'false');
+        state.searchActive = -1;
+    }
+
+    function renderSearchList() {
+        state.searchMatches = searchSuggestions(el.searchInput.value);
+        if (state.searchActive >= state.searchMatches.length) state.searchActive = -1;
+
+        el.searchList.replaceChildren();
+        state.searchMatches.forEach((m, index) => {
+            const item = document.createElement('li');
+            item.className = 'search-option';
+            item.classList.toggle('active', index === state.searchActive);
+            item.setAttribute('role', 'option');
+            item.setAttribute('aria-selected', String(index === state.searchActive));
+
+            const name = document.createElement('span');
+            name.className = 'search-name';
+            name.textContent = m.nome;
+
+            const uf = document.createElement('span');
+            uf.className = 'uf-name';
+            uf.textContent = m.uf;
+
+            item.append(name, uf);
+            // mousedown fires before blur, so the choice registers before the list closes.
+            item.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+                chooseSuggestion(m);
+            });
+            el.searchList.appendChild(item);
+        });
+    }
+
+    function chooseSuggestion(m) {
+        el.searchInput.value = `${m.nome} - ${m.uf}`;
+        closeSearchList();
+        selectMunicipio(m);
+        setStatus(`Mostrando ${m.nome} – ${m.uf}.`);
+    }
+
+    function moveSearchActive(step) {
+        const count = state.searchMatches.length;
+        if (count === 0) return;
+        state.searchActive = (state.searchActive + step + count) % count;
+        renderSearchList();
+        const active = el.searchList.querySelector('.search-option.active');
+        if (active) active.scrollIntoView({ block: 'nearest' });
+    }
+
+    function onSearchKeydown(event) {
+        const listOpen = !el.searchList.classList.contains('hidden');
+
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (!listOpen) openSearchList();
+            moveSearchActive(event.key === 'ArrowDown' ? 1 : -1);
+        } else if (event.key === 'Enter' && listOpen && state.searchActive >= 0) {
+            // Enter picks the highlighted suggestion instead of submitting the form.
+            event.preventDefault();
+            chooseSuggestion(state.searchMatches[state.searchActive]);
+        } else if (event.key === 'Escape') {
+            closeSearchList();
+        }
+    }
+
     // ---------- selection ----------
 
     function showInfo(m) {
@@ -514,7 +607,7 @@
         const needle = normalize(query);
         if (!needle) return null;
 
-        // Accepts "Nome - UF" from the datalist, or a plain name.
+        // Accepts "Nome - UF" (as written by a suggestion), or a plain name.
         const [namePart, ufPart] = query.split(' - ');
         const ufHint = ufPart ? ufPart.trim().toUpperCase() : '';
         const wanted = normalize(namePart);
@@ -538,6 +631,17 @@
             }
         });
 
+        // Municipality suggestions.
+        el.searchInput.addEventListener('focus', () => {
+            if (el.searchInput.value.trim()) openSearchList();
+        });
+        el.searchInput.addEventListener('input', () => {
+            state.searchActive = 0;
+            openSearchList();
+            if (state.searchMatches.length === 0) state.searchActive = -1;
+        });
+        el.searchInput.addEventListener('keydown', onSearchKeydown);
+
         // UF multi-select.
         el.ufInput.addEventListener('focus', openUfList);
         el.ufInput.addEventListener('input', () => {
@@ -549,6 +653,7 @@
         el.ufClear.addEventListener('click', clearUfSelection);
         document.addEventListener('mousedown', (event) => {
             if (!el.ufField.contains(event.target)) closeUfList();
+            if (!el.searchForm.contains(event.target)) closeSearchList();
         });
 
         // Field filter: the select chooses the field, the input supplies the value.
@@ -569,7 +674,7 @@
 
         el.togglePanel.addEventListener('click', () => {
             const collapsed = el.toolbar.classList.toggle('collapsed');
-            el.togglePanel.textContent = collapsed ? '+' : '–';
+            el.togglePanel.innerHTML = collapsed ? PLUS_ICON : MINUS_ICON;
             el.togglePanel.setAttribute('aria-expanded', String(!collapsed));
             el.togglePanel.setAttribute('aria-label', collapsed ? 'Expandir painel' : 'Minimizar painel');
             el.togglePanel.title = collapsed ? 'Expandir' : 'Minimizar';

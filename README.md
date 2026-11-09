@@ -131,12 +131,12 @@ A tabela `estados` segue o mesmo padrão e está em [`sql/estados.sql`](sql/esta
 A pasta [`web/`](web/) tem um explorador estático, sem etapa de build:
 
 - **Mapa** com os 5.570 municípios, coloridos por fuso horário, com as capitais destacadas, usando tiles do [OpenStreetMap](https://www.openstreetmap.org/copyright);
-- **Busca** por nome, sem diferenciar acentos nem maiúsculas;
+- **Busca** por nome com sugestões enquanto você digita (use as setas e Enter para escolher), sem diferenciar acentos nem maiúsculas;
 - **Filtro por UF** com seleção múltipla: digite a sigla ou o nome do estado e escolha quantos quiser; cada UF escolhida vira um chip;
 - **Filtro por campo**: escolha entre cidade, código IBGE, DDD ou fuso horário e digite o valor. Os filtros de UF e de campo se combinam;
 - **Minha localização**: usa a geolocalização do navegador e encontra o município mais próximo de você.
 - **Limite dos dados**: o repositório não tem CEP, rua nem bairro, então não há filtro por esses campos. Ele tem código IBGE, cidade, UF, DDD e fuso horário.
-- **Painel recolhível**: a busca fica no canto superior esquerdo e pode ser minimizada pelo botão **–**. O município selecionado aparece no canto inferior direito, acima da atribuição do mapa. O layout também funciona em celular.
+- **Painel recolhível**: a busca fica no canto superior esquerdo e pode ser minimizada pelo botão de traço (**—**); clique de novo para expandir. O município selecionado aparece no canto inferior direito, acima da atribuição do mapa. O layout também funciona em celular.
 
 ![Mapa 2D com OpenStreetMap](docs/images/map.png)
 

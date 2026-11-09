@@ -18,14 +18,19 @@
             <div class="panel-header">
                 <h1>Municípios Brasileiros</h1>
                 <button type="button" id="toggle-panel" class="toggle" aria-expanded="true"
-                        aria-controls="panel-body" aria-label="Minimizar painel" title="Minimizar">–</button>
+                        aria-controls="panel-body" aria-label="Minimizar painel" title="Minimizar"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
             </div>
 
             <div id="panel-body" class="panel-body">
                 <form id="search-form" class="search" autocomplete="off">
-                    <input id="search-input" type="search" list="municipios-list"
-                           placeholder="Buscar município…" aria-label="Buscar município">
-                    <datalist id="municipios-list"></datalist>
+                    <div class="search-field">
+                        <input id="search-input" type="text" spellcheck="false"
+                               placeholder="Buscar município…" aria-label="Buscar município"
+                               role="combobox" aria-expanded="false" aria-controls="search-list"
+                               aria-autocomplete="list">
+                        <ul id="search-list" class="search-list hidden" role="listbox"
+                            aria-label="Sugestões de município"></ul>
+                    </div>
                     <button type="submit">Buscar</button>
                 </form>
 
