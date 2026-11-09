@@ -228,7 +228,7 @@ Antes de enviar uma alteração:
 2. rode `python scripts/build.py` para atualizar `json/` e `sql/`;
 3. rode `python scripts/validate_files.py` e confirme que termina com `OK`.
 
-Veja também o [CHANGELOG](CHANGELOG.md).
+Veja também o [guia de contribuição](CONTRIBUTING.md) e o [CHANGELOG](CHANGELOG.md).
 
 ## Exportação e fontes oficiais
 
