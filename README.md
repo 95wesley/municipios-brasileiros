@@ -132,6 +132,7 @@ A pasta [`web/`](web/) tem um explorador estático, sem etapa de build:
 
 - **Mapa** com os 5.570 municípios, coloridos por fuso horário, com as capitais destacadas, usando tiles do [OpenStreetMap](https://www.openstreetmap.org/copyright);
 - **Busca** por nome com sugestões enquanto você digita (use as setas e Enter para escolher), sem diferenciar acentos nem maiúsculas;
+- **Contorno dos estados**: ao escolher uma UF, o estado aparece demarcado no mapa, com o contorno oficial do IBGE. Só o código da UF é enviado ao serviço de malhas do IBGE;
 - **Filtro por UF** com seleção múltipla: digite a sigla ou o nome do estado e escolha quantos quiser; cada UF escolhida vira um chip;
 - **Filtro por campo**: escolha entre cidade, código IBGE, DDD ou fuso horário e digite o valor. Os filtros de UF e de campo se combinam;
 - **Minha localização**: usa a geolocalização do navegador e encontra o município mais próximo de você.
@@ -239,5 +240,6 @@ Veja também o [CHANGELOG](CHANGELOG.md).
 - Dados de municípios e UFs: [IBGE](https://www.ibge.gov.br/) e [SIAFI](https://www.gov.br/tesouronacional/pt-br/siafi).
 - Mapa base: © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).
 - Mapa: [Leaflet](https://leafletjs.com/).
+- Contornos dos estados: [IBGE](https://servicodados.ibge.gov.br/api/docs/malhas), pela API de malhas.
 
 Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).

@@ -14,6 +14,7 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - Explorer: the search panel can be collapsed with the – button.
 - Explorer: UF filter is a multi-select in a single input, with chips, keyboard support and search by code or name.
 - Explorer: field filter (city, IBGE code, DDD, time zone) that combines with the UF filter.
+- Explorer: selected states are outlined on the map, using the official IBGE boundaries.
 - Explorer: the map frames the selected states, and markers are larger when few municipalities are shown.
 - README: map screenshot, quick-start table and dataset summary.
 

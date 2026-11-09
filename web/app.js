@@ -27,6 +27,21 @@
     const EARTH_RADIUS_KM = 6371.0088;
     const MAX_SEARCH_RESULTS = 8;
 
+    // State outlines come from the official IBGE boundary API (public, CORS enabled).
+    // Only the state code is sent in the request.
+    const STATE_SHAPE_URL = (codigoUf) => (
+        `https://servicodados.ibge.gov.br/api/v3/malhas/estados/${codigoUf}`
+        + '?formato=application/vnd.geo+json&qualidade=intermediaria'
+    );
+    const OUTLINE_STYLE = {
+        color: '#1d4ed8',
+        weight: 2,
+        opacity: 0.9,
+        fillColor: '#3b82f6',
+        fillOpacity: 0.12,
+    };
+    const SHAPE_PANE = 'statesPane';
+
     // Icons for the panel toggle button (inline SVG, so they follow the text colour).
     const MINUS_ICON = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>';
     const PLUS_ICON = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
@@ -49,6 +64,8 @@
         mapLayer: null,
         userMarker: null,
         userCircle: null,
+        stateLayers: new Map(),  // UF -> Leaflet layer with that state's outline
+        shapeLoading: new Set(), // UFs whose outline is being fetched
     };
 
     const el = {
@@ -207,6 +224,12 @@
             attribution: OSM_ATTRIBUTION,
         }).addTo(state.map);
 
+        // Outlines sit below the markers and never block clicks on the map.
+        state.map.createPane(SHAPE_PANE);
+        const shapePane = state.map.getPane(SHAPE_PANE);
+        shapePane.style.zIndex = 350;
+        shapePane.style.pointerEvents = 'none';
+
         state.mapLayer = L.layerGroup().addTo(state.map);
 
         // Clicking the map selects the nearest visible municipality to the click.
@@ -243,9 +266,15 @@
             state.map.setView(BRAZIL_CENTER, BRAZIL_ZOOM);
             return;
         }
-        const visible = visibleMunicipios();
-        if (visible.length === 0) return;
-        const bounds = L.latLngBounds(visible.map((m) => [m.latitude, m.longitude]));
+        const bounds = L.latLngBounds([]);
+        for (const m of visibleMunicipios()) {
+            bounds.extend([m.latitude, m.longitude]);
+        }
+        // Include the outlines of the selected states, when they are loaded.
+        for (const layer of state.stateLayers.values()) {
+            bounds.extend(layer.getBounds());
+        }
+        if (!bounds.isValid()) return;
         state.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
     }
 
@@ -342,6 +371,7 @@
 
     function applyUfFilter() {
         refreshMarkers();
+        syncStateOutlines();
         fitToSelection();
 
         const count = visibleMunicipios().length;
@@ -420,6 +450,50 @@
             toggleUf(sortedSelectedUfs().pop());
         } else if (event.key === 'Escape') {
             closeUfList();
+        }
+    }
+
+    // ---------- state outlines ----------
+
+    /** Keep one outline per selected state: draw new ones, remove deselected ones. */
+    function syncStateOutlines() {
+        for (const [uf, layer] of state.stateLayers) {
+            if (!state.selectedUfs.has(uf)) {
+                layer.remove();
+                state.stateLayers.delete(uf);
+            }
+        }
+        for (const uf of state.selectedUfs) {
+            if (!state.stateLayers.has(uf) && !state.shapeLoading.has(uf)) {
+                loadStateOutline(uf);
+            }
+        }
+    }
+
+    async function loadStateOutline(uf) {
+        const estado = state.estadosByUf.get(uf);
+        if (!estado) return;
+
+        state.shapeLoading.add(uf);
+        try {
+            const response = await fetch(STATE_SHAPE_URL(estado.codigo_uf));
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const geojson = await response.json();
+
+            // The user may have deselected the state while the outline was loading.
+            if (!state.selectedUfs.has(uf)) return;
+
+            const layer = L.geoJSON(geojson, {
+                pane: SHAPE_PANE,
+                style: OUTLINE_STYLE,
+                interactive: false,
+            }).addTo(state.map);
+            state.stateLayers.set(uf, layer);
+            fitToSelection();
+        } catch (error) {
+            setStatus(`Não foi possível carregar o contorno de ${uf}. Os pontos continuam no mapa.`);
+        } finally {
+            state.shapeLoading.delete(uf);
         }
     }
 
