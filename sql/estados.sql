@@ -35,4 +35,4 @@ INSERT INTO estados VALUES
 (50,'MS','Mato Grosso do Sul',-20.51,-54.54,'Centro-Oeste'),
 (51,'MT','Mato Grosso',-12.64,-55.42,'Centro-Oeste'),
 (52,'GO','Goiás',-15.98,-49.86,'Centro-Oeste'),
-(53,'DF','Distrito Federal',-15.83,-47.86,'Centro-Oeste')
+(53,'DF','Distrito Federal',-15.83,-47.86,'Centro-Oeste');

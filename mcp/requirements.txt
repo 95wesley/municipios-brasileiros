@@ -1,0 +1,2 @@
+# Requires Python 3.10+. Pinned to the v1 API (FastMCP); v2 renamed it to MCPServer.
+mcp>=1.2.0,<2

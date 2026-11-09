@@ -5582,4 +5582,4 @@ INSERT INTO municipios VALUES
 (2517407,'Zabelê',-8.07901,-37.1057,FALSE,25,'0542',83,'America/Sao_Paulo'),
 (3557154,'Zacarias',-21.0506,-50.0552,FALSE,35,'2973',18,'America/Sao_Paulo'),
 (2114007,'Zé Doca',-3.27014,-45.6553,FALSE,21,'1287',98,'America/Sao_Paulo'),
-(4219853,'Zortéa',-27.4521,-51.552,FALSE,42,'0950',49,'America/Sao_Paulo')
+(4219853,'Zortéa',-27.4521,-51.552,FALSE,42,'0950',49,'America/Sao_Paulo');
