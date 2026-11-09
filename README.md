@@ -238,19 +238,9 @@ Veja também o [guia de contribuição](CONTRIBUTING.md) e o [CHANGELOG](CHANGEL
 
 ## Apoie o projeto
 
-Se os dados te ajudaram, você pode apoiar o projeto com um Pix de R$ 5,00:
+Se os dados te ajudaram, você pode apoiar o projeto via Pix:
 
 - **Chave Pix (e-mail):** `we95sz@gmail.com`
-- **Nome:** Wesley Souza
-
-<p align="center">
-  <img src="pix-5reais-qrcode.png" width="220" alt="QR code Pix R$ 5,00">
-</p>
-
-Pix copia e cola:
-```
-00020101021226700014br.gov.bcb.pix0116we95sz@gmail.com0228Apoio Municipios Brasileiros52040000530398654045.005802BR5912WESLEY SOUZA6006BRASIL62070503***6304039B
-```
 
 ## Créditos e licença
 
