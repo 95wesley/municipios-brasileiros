@@ -1,38 +1,15 @@
-/* Design tokens: light theme by default, dark theme when the OS asks for it. */
+/* Single light theme that matches the OpenStreetMap tiles and the Leaflet controls. */
 :root {
-    --bg: #f1f5f9;
+    --bg: #f2efe9;
+    --panel: rgba(255, 255, 255, 0.94);
     --input-bg: #ffffff;
-    --panel: rgba(255, 255, 255, 0.95);
-    --text: #0f172a;
-    --muted: #475569;
-    --border: #cbd5e1;
+    --text: #1f2933;
+    --muted: #5b6573;
+    --border: rgba(0, 0, 0, 0.18);
     --accent: #2563eb;
     --accent-text: #ffffff;
     --focus: #f59e0b;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        --bg: #0b1220;
-        --input-bg: #0f172a;
-        --panel: rgba(15, 23, 42, 0.92);
-        --text: #e2e8f0;
-        --muted: #94a3b8;
-        --border: #334155;
-        --accent: #3b82f6;
-        --accent-text: #ffffff;
-    }
-}
-
-:root[data-theme="dark"] {
-    --bg: #0b1220;
-    --input-bg: #0f172a;
-    --panel: rgba(15, 23, 42, 0.92);
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --border: #334155;
-    --accent: #3b82f6;
-    --accent-text: #ffffff;
+    --shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
 }
 
 * {
@@ -46,6 +23,7 @@ body {
     background: var(--bg);
     color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
 }
 
 .app {
@@ -55,11 +33,11 @@ body {
     overflow: hidden;
 }
 
+/* Each view is its own stacking context, so Leaflet panes stay under the floating panels. */
 .view {
     position: absolute;
     inset: 0;
     z-index: 0;
-    /* Keep Leaflet panes inside the map, below the floating toolbar. */
     isolation: isolate;
 }
 
@@ -67,30 +45,29 @@ body {
     display: none !important;
 }
 
-/* Toolbar floats over the views. */
+/* Compact floating panel, styled like the Leaflet controls. */
 .toolbar {
     position: absolute;
     z-index: 10;
-    top: 16px;
-    left: 16px;
-    right: 16px;
-    max-width: 560px;
-    padding: 14px 16px;
-    border-radius: 14px;
+    top: 12px;
+    left: 12px;
+    width: min(340px, calc(100% - 24px));
+    padding: 10px 12px;
+    border-radius: 10px;
     background: var(--panel);
     border: 1px solid var(--border);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow);
 }
 
 .toolbar h1 {
-    margin: 0 0 10px;
-    font-size: 1.1rem;
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
 }
 
 .search {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .search input {
@@ -102,21 +79,21 @@ input,
 select,
 button {
     font: inherit;
-    border-radius: 8px;
+    font-size: 0.85rem;
+    border-radius: 6px;
     border: 1px solid var(--border);
-    padding: 8px 10px;
+    padding: 5px 8px;
     background: var(--input-bg);
     color: var(--text);
 }
 
-button {
-    cursor: pointer;
-}
-
-/* Placeholder must stay readable in both themes. */
 input::placeholder {
     color: var(--muted);
     opacity: 1;
+}
+
+button {
+    cursor: pointer;
 }
 
 button.primary,
@@ -137,15 +114,15 @@ select:focus-visible {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
-    margin-top: 10px;
+    gap: 6px;
+    margin-top: 8px;
 }
 
 .controls label {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.9rem;
+    gap: 4px;
+    font-size: 0.8rem;
     color: var(--muted);
 }
 
@@ -158,11 +135,11 @@ select:focus-visible {
 }
 
 .segmented button:first-child {
-    border-radius: 8px 0 0 8px;
+    border-radius: 6px 0 0 6px;
 }
 
 .segmented button:last-child {
-    border-radius: 0 8px 8px 0;
+    border-radius: 0 6px 6px 0;
     margin-left: -1px;
 }
 
@@ -173,38 +150,39 @@ select:focus-visible {
 }
 
 .status {
-    margin: 10px 0 0;
-    font-size: 0.85rem;
+    margin: 8px 0 0;
+    font-size: 0.78rem;
     color: var(--muted);
-    min-height: 1.2em;
+    min-height: 1em;
 }
 
-/* Info card for the selected municipality. */
+/* Info card for the selected municipality, bottom right. */
 .info {
     position: absolute;
     z-index: 10;
-    right: 16px;
-    bottom: 64px;
-    width: min(320px, calc(100% - 32px));
-    padding: 16px;
-    border-radius: 14px;
+    right: 12px;
+    bottom: 40px;
+    width: min(280px, calc(100% - 24px));
+    padding: 12px 14px;
+    border-radius: 10px;
     background: var(--panel);
     border: 1px solid var(--border);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--shadow);
 }
 
 .info h2 {
-    margin: 0 0 10px;
-    font-size: 1.05rem;
-    padding-right: 24px;
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding-right: 20px;
 }
 
 .info dl {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 4px 12px;
+    gap: 3px 10px;
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
 .info dt {
@@ -217,39 +195,41 @@ select:focus-visible {
 
 .info .close {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: 2px 8px;
-    line-height: 1;
+    top: 6px;
+    right: 6px;
+    padding: 0 6px;
+    line-height: 1.4;
+    font-size: 1rem;
 }
 
-/* Colour legend at the bottom. */
+/* Colour legend at the bottom left. */
 .legend {
     position: absolute;
     z-index: 10;
-    left: 16px;
-    bottom: 16px;
+    left: 12px;
+    bottom: 12px;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 14px;
-    padding: 8px 12px;
-    border-radius: 10px;
+    gap: 4px 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
     background: var(--panel);
     border: 1px solid var(--border);
-    font-size: 0.78rem;
+    box-shadow: var(--shadow);
+    font-size: 0.72rem;
     color: var(--muted);
 }
 
 .legend span {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
 
 .dot {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
 }
 
@@ -258,31 +238,24 @@ select:focus-visible {
     box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.35);
 }
 
-/* Leaflet container inherits the page background. */
-#map {
-    background: var(--bg);
-}
-
-/* Phone layout: 16px gutters, stacked controls, no horizontal scroll. */
+/* Phone layout: 8px gutters, no horizontal scroll. */
 @media (max-width: 600px) {
     .toolbar {
-        left: 8px;
-        right: 8px;
         top: 8px;
-        padding: 12px;
+        left: 8px;
+        width: calc(100% - 16px);
     }
 
     .info {
-        left: 8px;
         right: 8px;
-        bottom: 56px;
-        width: auto;
+        bottom: 36px;
+        width: calc(100% - 16px);
     }
 
     .legend {
         left: 8px;
         right: 8px;
         bottom: 8px;
-        font-size: 0.72rem;
+        font-size: 0.68rem;
     }
 }
