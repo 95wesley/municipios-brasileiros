@@ -113,6 +113,12 @@ button {
     cursor: pointer;
 }
 
+/* Placeholder must stay readable in both themes. */
+input::placeholder {
+    color: var(--muted);
+    opacity: 1;
+}
+
 button.primary,
 .search button {
     background: var(--accent);

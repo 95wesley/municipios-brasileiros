@@ -4,74 +4,77 @@
 [![Versão](https://img.shields.io/badge/vers%C3%A3o-2.0.0-blue)](CHANGELOG.md)
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green)](LICENSE)
 
-Arquivos `SQL`, `CSV` e `JSON` com os **5.570 municípios** e as **27 UFs** do Brasil, incluindo código IBGE, nome, capital, código UF, código SIAFI, DDD, fuso horário e **latitude/longitude**.
+Os **5.570 municípios** e as **27 UFs** do Brasil em arquivos `SQL`, `CSV` e `JSON`, com código IBGE, capital, código SIAFI, DDD, fuso horário e **latitude/longitude** de cada município.
 
-Além dos dados, o repositório traz:
+**[▶ Abrir o explorador 3D](https://95wesley.github.io/municipios-brasileiros/web/)** · [Dados (CSV)](csv/municipios.csv) · [Changelog](CHANGELOG.md)
 
-- um **globo 3D** e um **mapa 2D** no navegador, com busca e geolocalização;
-- um **servidor MCP** para consultar os dados a partir de assistentes de IA;
-- scripts de **validação** e **geração** dos arquivos derivados.
+![Globo 3D com os municípios brasileiros](docs/images/globe.png)
 
 ## Sumário
 
-- [Conteúdo do repositório](#conteúdo-do-repositório)
+- [Início rápido](#início-rápido)
+- [Os dados em números](#os-dados-em-números)
 - [Campos](#campos)
 - [Exemplos](#exemplos)
-- [Uso rápido](#uso-rápido)
 - [Explorador web: globo 3D e mapa 2D](#explorador-web-globo-3d-e-mapa-2d)
 - [Servidor MCP](#servidor-mcp)
+- [Scripts e validação](#scripts-e-validação)
 - [Qualidade dos dados](#qualidade-dos-dados)
-- [Exportação dos dados](#exportação-dos-dados)
 - [Contribuição](#contribuição)
-- [Créditos](#créditos)
-- [Licença](#licença)
+- [Créditos e licença](#créditos-e-licença)
 
-## Conteúdo do repositório
+## Início rápido
 
-```
-csv/          municipios.csv e estados.csv (fonte única dos dados)
-json/         municipios.json e estados.json (gerados a partir do CSV)
-sql/          municipios.sql e estados.sql (gerados a partir do CSV)
-scripts/      build.py (gera os arquivos) e validate_files.py (valida os dados)
-            lib/municipios.py (funções compartilhadas)
-mcp/          servidor MCP (server.py e requirements.txt)
-web/          explorador web: globo 3D, mapa 2D e geolocalização
-```
+| Eu quero…                                   | Faça isto                                                                                   |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Explorar os municípios no mapa              | Abra o [explorador 3D](https://95wesley.github.io/municipios-brasileiros/web/)              |
+| Usar os dados num banco ou planilha         | Baixe [`sql/`](sql/), [`csv/`](csv/) ou [`json/`](json/)                                    |
+| Consultar os dados num assistente de IA     | Configure o [servidor MCP](#servidor-mcp)                                                   |
+| Contribuir ou regenerar os arquivos         | Veja [Scripts e validação](#scripts-e-validação)                                            |
 
-> O CSV é a **fonte única**. Os arquivos `json/` e `sql/` são gerados por `scripts/build.py` e não devem ser editados à mão.
+## Os dados em números
+
+| Item                       | Valor                                                                       |
+| -------------------------- | --------------------------------------------------------------------------- |
+| Municípios                 | 5.570                                                                       |
+| Unidades da federação (UF) | 27                                                                          |
+| Capitais                   | 27 (uma por UF)                                                             |
+| Grandes regiões            | 5 (Norte, Nordeste, Sudeste, Sul, Centro-Oeste)                             |
+| Fusos horários             | 4 (`America/Sao_Paulo`, `America/Porto_Velho`, `America/Rio_Branco`, `America/Noronha`) |
+| Valores vazios             | 0                                                                           |
 
 ## Campos
 
 ### Municípios (`municipios`)
 
-| Campo          | Tipo    | Descrição                                                            |
-| -------------- | ------- | -------------------------------------------------------------------- |
-| `codigo_ibge`  | inteiro | Código IBGE do município (7 dígitos). Chave primária.                |
-| `nome`         | texto   | Nome do município.                                                   |
-| `latitude`     | decimal | Latitude em graus decimais.                                          |
-| `longitude`    | decimal | Longitude em graus decimais.                                         |
-| `capital`      | 0 ou 1  | `1` se for capital da UF, `0` caso contrário (`BOOLEAN` no SQL).     |
-| `codigo_uf`    | inteiro | Código IBGE da UF. Chave estrangeira para `estados`.                 |
-| `siafi_id`     | texto   | Código SIAFI com 4 dígitos. **Mantém zeros à esquerda** (ex.: `"0401"`). |
-| `ddd`          | inteiro | Código DDD.                                                          |
-| `fuso_horario` | texto   | Fuso horário IANA (ex.: `America/Sao_Paulo`).                        |
+| Campo          | Tipo    | Descrição                                                                |
+| -------------- | ------- | ------------------------------------------------------------------------ |
+| `codigo_ibge`  | inteiro | Código IBGE do município (7 dígitos). Chave primária.                    |
+| `nome`         | texto   | Nome do município.                                                       |
+| `latitude`     | decimal | Latitude em graus decimais.                                              |
+| `longitude`    | decimal | Longitude em graus decimais.                                             |
+| `capital`      | 0 ou 1  | `1` se for a capital da UF, `0` caso contrário (`BOOLEAN` no SQL).       |
+| `codigo_uf`    | inteiro | Código IBGE da UF. Chave estrangeira para `estados`.                     |
+| `siafi_id`     | texto   | Código SIAFI com 4 dígitos. **Mantém os zeros à esquerda** (ex.: `"0401"`). |
+| `ddd`          | inteiro | Código DDD.                                                              |
+| `fuso_horario` | texto   | Fuso horário IANA (ex.: `America/Sao_Paulo`).                            |
 
 ### Estados (`estados`)
 
-| Campo       | Tipo    | Descrição                                            |
-| ----------- | ------- | ---------------------------------------------------- |
-| `codigo_uf` | inteiro | Código IBGE da UF. Chave primária.                   |
-| `uf`        | texto   | Sigla da UF (ex.: `GO`).                             |
-| `nome`      | texto   | Nome da UF.                                          |
-| `latitude`  | decimal | Coordenada de referência da UF.                      |
-| `longitude` | decimal | Coordenada de referência da UF.                      |
+| Campo       | Tipo    | Descrição                                                              |
+| ----------- | ------- | ---------------------------------------------------------------------- |
+| `codigo_uf` | inteiro | Código IBGE da UF. Chave primária.                                     |
+| `uf`        | texto   | Sigla da UF (ex.: `GO`).                                               |
+| `nome`      | texto   | Nome da UF.                                                            |
+| `latitude`  | decimal | Coordenada de referência da UF.                                        |
+| `longitude` | decimal | Coordenada de referência da UF.                                        |
 | `regiao`    | texto   | Grande região (`Norte`, `Nordeste`, `Sudeste`, `Sul`, `Centro-Oeste`). |
 
-Para obter a região de um município, faça a junção com `estados` pelo `codigo_uf`.
+Para saber a região de um município, faça a junção com `estados` pelo `codigo_uf`.
 
 ## Exemplos
 
-### Municípios (CSV)
+### CSV
 
 ```csv
 codigo_ibge,nome,latitude,longitude,capital,codigo_uf,siafi_id,ddd,fuso_horario
@@ -81,7 +84,7 @@ codigo_ibge,nome,latitude,longitude,capital,codigo_uf,siafi_id,ddd,fuso_horario
 4314902,Porto Alegre,-30.0318,-51.2065,1,43,8801,51,America/Sao_Paulo
 ```
 
-### Municípios (JSON)
+### JSON
 
 ```json
 [
@@ -99,7 +102,7 @@ codigo_ibge,nome,latitude,longitude,capital,codigo_uf,siafi_id,ddd,fuso_horario
 ]
 ```
 
-### Municípios (SQL)
+### SQL
 
 ```sql
 CREATE TABLE municipios(
@@ -123,44 +126,30 @@ INSERT INTO municipios VALUES
 
 A tabela `estados` segue o mesmo padrão e está em [`sql/estados.sql`](sql/estados.sql).
 
-## Uso rápido
-
-Requisitos: **Python 3.9+** para os scripts (somente biblioteca padrão).
-
-```bash
-# Validar os dados e verificar se json/ e sql/ estão atualizados
-python scripts/validate_files.py
-
-# Regenerar json/ e sql/ a partir do CSV (depois de editar csv/)
-python scripts/build.py
-```
-
-O `validate_files.py` roda automaticamente no GitHub Actions a cada push e pull request.
-
 ## Explorador web: globo 3D e mapa 2D
 
 A pasta [`web/`](web/) tem um explorador estático, sem etapa de build:
 
-- **Globo 3D** com os 5.570 municípios, coloridos por fuso horário e com as capitais destacadas;
-- **Mapa 2D** com tiles do [OpenStreetMap](https://www.openstreetmap.org/copyright);
-- **Busca** por nome (sem acento e sem diferenciar maiúsculas);
+- **Globo 3D** com os 5.570 municípios, coloridos por fuso horário, com as capitais destacadas;
+- **Mapa 2D** com tiles do [OpenStreetMap](https://www.openstreetmap.org/copyright), que mostra os municípios em cada região;
+- **Busca** por nome, sem diferenciar acentos nem maiúsculas;
 - **Filtro por UF**;
-- **Minha localização**: usa a geolocalização do navegador e encontra o município mais próximo.
+- **Minha localização**: usa a geolocalização do navegador e encontra o município mais próximo de você.
 
-Como o navegador bloqueia `fetch` em arquivos abertos direto do disco, sirva a pasta do repositório:
+![Mapa 2D com OpenStreetMap](docs/images/map.png)
+
+Para rodar localmente, sirva a pasta do repositório (o navegador bloqueia o carregamento de dados quando o arquivo é aberto direto do disco):
 
 ```bash
 python -m http.server 8000
 # abra http://localhost:8000/web/
 ```
 
-Ou acesse a versão publicada no GitHub Pages: https://95wesley.github.io/municipios-brasileiros/web/
-
-**Privacidade:** a geolocalização é calculada **no seu navegador**, sobre os dados do repositório. Nenhuma coordenada é enviada a servidores. A permissão de localização é pedida apenas quando você clica em "Minha localização".
+**Privacidade:** a geolocalização é calculada **no seu navegador**, sobre os dados do repositório. Nenhuma coordenada é enviada a servidores. A permissão de localização só é pedida quando você clica em "Minha localização".
 
 ## Servidor MCP
 
-O diretório [`mcp/`](mcp/) contém um servidor [MCP](https://modelcontextprotocol.io) que permite consultar os dados a partir de assistentes como o Claude.
+O diretório [`mcp/`](mcp/) tem um servidor [MCP](https://modelcontextprotocol.io) que permite consultar os dados a partir de assistentes como o Claude.
 
 Requisitos: **Python 3.10+** (o SDK `mcp` exige essa versão).
 
@@ -170,27 +159,41 @@ source .venv/bin/activate
 pip install -r mcp/requirements.txt
 ```
 
-Registrar no Claude Code (use o caminho absoluto do arquivo):
+Registre no Claude Code (use o caminho absoluto do arquivo):
 
 ```bash
 claude mcp add municipios -- python /caminho/absoluto/para/municipios-brasileiros/mcp/server.py
 ```
 
-Ferramentas disponíveis:
-
-| Ferramenta                       | O que faz                                                              |
-| -------------------------------- | ---------------------------------------------------------------------- |
-| `search_municipio`               | Busca por nome (sem acento), com filtro opcional por UF.               |
-| `get_municipio`                  | Retorna um município pelo código IBGE.                                 |
-| `list_municipios_by_uf`          | Lista os municípios de uma UF, em ordem alfabética.                    |
-| `get_estado`                     | Retorna uma UF com a contagem de municípios.                           |
-| `list_capitals`                  | Lista as 27 capitais.                                                  |
-| `nearest_municipios`             | Municípios dentro de um raio (km) de uma coordenada.                   |
-| `nearest_municipio`              | Município mais próximo de uma coordenada.                              |
-| `dataset_statistics`             | Totais por região, fuso horário e UF.                                  |
-| `validate_dataset`               | Executa as validações de qualidade dos dados.                          |
+| Ferramenta              | O que faz                                                        |
+| ----------------------- | ---------------------------------------------------------------- |
+| `search_municipio`      | Busca por nome (sem acento), com filtro opcional por UF.         |
+| `get_municipio`         | Retorna um município pelo código IBGE.                           |
+| `list_municipios_by_uf` | Lista os municípios de uma UF, em ordem alfabética.              |
+| `get_estado`            | Retorna uma UF com a contagem de municípios.                     |
+| `list_capitals`         | Lista as 27 capitais.                                            |
+| `nearest_municipios`    | Municípios dentro de um raio (km) de uma coordenada.             |
+| `nearest_municipio`     | Município mais próximo de uma coordenada.                        |
+| `dataset_statistics`    | Totais por região, fuso horário e UF.                            |
+| `validate_dataset`      | Executa as validações de qualidade dos dados.                    |
 
 Recurso disponível: `municipios://estados` (as 27 UFs em JSON).
+
+## Scripts e validação
+
+O CSV em [`csv/`](csv/) é a **fonte única**. Os arquivos de `json/` e `sql/` são gerados a partir dele e não devem ser editados à mão.
+
+Requisitos: **Python 3.9+**, somente biblioteca padrão.
+
+```bash
+# Validar os dados e confirmar que json/ e sql/ estão atualizados
+python scripts/validate_files.py
+
+# Regenerar json/ e sql/ depois de editar o CSV
+python scripts/build.py
+```
+
+O `validate_files.py` roda no GitHub Actions a cada push e pull request.
 
 ## Qualidade dos dados
 
@@ -208,21 +211,13 @@ O `validate_files.py` verifica:
 
 Pontos de atenção conhecidos (não são erros):
 
-- **Nomes repetem entre UFs** (ex.: `Alvorada`, `Amparo`). Use sempre `codigo_ibge` como identificador.
-- **Precisão das coordenadas varia** (4 a 6 casas decimais). As coordenadas não foram conferidas uma a uma contra uma fonte oficial de geometria.
-- **Municípios a mais de 1.500 km do ponto de referência da UF** são listados como avisos. Em estados grandes, como o Amazonas, isso pode ser normal.
-
-## Exportação dos dados
-
-Existem diversas ferramentas para trabalhar com bancos de dados e exportar os dados em outros formatos. Uma ferramenta que costumo utilizar com frequência é o [DBeaver](https://dbeaver.io/), pois além de ser multiplataforma ela é simples de usar e disponibiliza várias opções para a exportação dos dados.
-
-## Serviço de Dados do IBGE
-
-O IBGE disponibiliza diversas informações sobre as localidades do Brasil pela API de Localidades: https://servicodados.ibge.gov.br/api/docs/localidades
+- **Nomes se repetem entre UFs** (ex.: `Alvorada`, `Amparo`). Use sempre `codigo_ibge` como identificador.
+- **A precisão das coordenadas varia** (4 a 6 casas decimais). As coordenadas não foram conferidas uma a uma contra uma fonte oficial de geometria.
+- **Municípios a mais de 1.500 km do ponto de referência da UF** aparecem como avisos. Em estados grandes, como o Amazonas, isso pode ser normal.
 
 ## Contribuição
 
-Encontrou um dado inconsistente ou tem alguma sugestão? Abra uma [issue](https://github.com/95wesley/municipios-brasileiros/issues) ou envie um [pull request](https://github.com/95wesley/municipios-brasileiros/pulls).
+Encontrou um dado inconsistente ou tem uma sugestão? Abra uma [issue](https://github.com/95wesley/municipios-brasileiros/issues) ou envie um [pull request](https://github.com/95wesley/municipios-brasileiros/pulls).
 
 Antes de enviar uma alteração:
 
@@ -232,13 +227,16 @@ Antes de enviar uma alteração:
 
 Veja também o [CHANGELOG](CHANGELOG.md).
 
-## Créditos
+## Exportação e fontes oficiais
+
+- Para exportar os dados de um banco, o [DBeaver](https://dbeaver.io/) é multiplataforma e tem várias opções de exportação.
+- O IBGE disponibiliza mais informações sobre as localidades pela [API de Localidades](https://servicodados.ibge.gov.br/api/docs/localidades).
+
+## Créditos e licença
 
 - Dados de municípios e UFs: [IBGE](https://www.ibge.gov.br/) e [SIAFI](https://www.gov.br/tesouronacional/pt-br/siafi).
 - Mapa base: © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).
-- Globo 3D: [globe.gl](https://globe.gl/) (three.js) e textura da Terra de [three-globe](https://github.com/vasturiano/three-globe).
+- Globo 3D: [globe.gl](https://globe.gl/) (three.js), com textura da Terra de [three-globe](https://github.com/vasturiano/three-globe).
 - Mapa 2D: [Leaflet](https://leafletjs.com/).
-
-## Licença
 
 Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
