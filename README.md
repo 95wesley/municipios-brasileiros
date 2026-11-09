@@ -21,6 +21,7 @@ Os **5.570 municípios** e as **27 UFs** do Brasil em arquivos `SQL`, `CSV` e `J
 - [Scripts e validação](#scripts-e-validação)
 - [Qualidade dos dados](#qualidade-dos-dados)
 - [Contribuição](#contribuição)
+- [Apoie o projeto](#apoie-o-projeto)
 - [Créditos e licença](#créditos-e-licença)
 
 ## Início rápido
@@ -234,6 +235,22 @@ Veja também o [guia de contribuição](CONTRIBUTING.md) e o [CHANGELOG](CHANGEL
 
 - Para exportar os dados de um banco, o [DBeaver](https://dbeaver.io/) é multiplataforma e tem várias opções de exportação.
 - O IBGE disponibiliza mais informações sobre as localidades pela [API de Localidades](https://servicodados.ibge.gov.br/api/docs/localidades).
+
+## Apoie o projeto
+
+Se os dados te ajudaram, você pode apoiar o projeto com um Pix de R$ 5,00:
+
+- **Chave Pix (e-mail):** `we95sz@gmail.com`
+- **Nome:** Wesley Souza
+
+<p align="center">
+  <img src="pix-5reais-qrcode.png" width="220" alt="QR code Pix R$ 5,00">
+</p>
+
+Pix copia e cola:
+```
+00020101021226700014br.gov.bcb.pix0116we95sz@gmail.com0228Apoio Municipios Brasileiros52040000530398654045.005802BR5912WESLEY SOUZA6006BRASIL62070503***6304039B
+```
 
 ## Créditos e licença
 
