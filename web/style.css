@@ -147,17 +147,187 @@ select:focus-visible {
 .controls {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
+    align-items: flex-end;
+    gap: 8px;
+    margin-top: 10px;
 }
 
-.controls label {
+.controls #locate-btn {
+    flex: 1 1 100%;
+    padding: 6px 10px;
+}
+
+/* UF multi-select: chips and search share one input box. */
+.uf-field {
+    position: relative;
+    flex: 1 1 100%;
+}
+
+.field-head {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.8rem;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
     color: var(--muted);
+}
+
+.field-head button {
+    padding: 0 4px;
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.uf-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    min-height: 34px;
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--input-bg);
+    cursor: text;
+}
+
+.uf-box:focus-within {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.uf-chips {
+    display: contents;
+}
+
+.uf-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 3px 2px 9px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1e3a8a;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.uf-chip-remove {
+    padding: 0 5px;
+    border: none;
+    background: transparent;
+    color: #1e3a8a;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.uf-box input {
+    flex: 1 1 110px;
+    min-width: 110px;
+    padding: 3px 2px;
+    border: none;
+    background: transparent;
+    font-size: 0.85rem;
+}
+
+.uf-box input:focus-visible {
+    outline: none;
+}
+
+.uf-list {
+    position: absolute;
+    z-index: 30;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 220px;
+    overflow-y: auto;
+    margin: 4px 0 0;
+    padding: 4px;
+    list-style: none;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.uf-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    user-select: none;
+}
+
+.uf-option.active {
+    background: #eff6ff;
+}
+
+.uf-option .check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex: none;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.uf-option.checked .check {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.uf-option .uf-code {
+    width: 24px;
+    font-weight: 700;
+}
+
+.uf-option .uf-name {
+    color: var(--muted);
+}
+
+.uf-empty {
+    padding: 6px 8px;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+/* Field filter: a select that picks the field, next to a value input. */
+.field-filter {
+    flex: 1 1 100%;
+}
+
+.field-filter .field-head label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.field-row {
+    display: flex;
+    gap: 6px;
+}
+
+.field-row select {
+    flex: 0 0 auto;
+    max-width: 45%;
+}
+
+.field-row input {
+    flex: 1;
+    min-width: 0;
 }
 
 

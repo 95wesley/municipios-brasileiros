@@ -12,6 +12,9 @@ and this project uses [Semantic Versioning](https://semver.org/).
 - Explorer: 3D globe removed; the page is now a single 2D map.
 - Explorer: colour legend removed; the selected municipality card sits above the map attribution.
 - Explorer: the search panel can be collapsed with the – button.
+- Explorer: UF filter is a multi-select in a single input, with chips, keyboard support and search by code or name.
+- Explorer: field filter (city, IBGE code, DDD, time zone) that combines with the UF filter.
+- Explorer: the map frames the selected states, and markers are larger when few municipalities are shown.
 - README: map screenshot, quick-start table and dataset summary.
 
 ## [2.0.0]

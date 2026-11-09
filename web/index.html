@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Municípios Brasileiros · Mapa</title>
-    <meta name="description" content="Explore os 5.570 municípios brasileiros em um mapa, com busca e geolocalização.">
+    <meta name="description" content="Explore os 5.570 municípios brasileiros em um mapa, com busca, filtro por UF e geolocalização.">
 
     <!-- Leaflet (2D map). Version pinned. -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
@@ -22,27 +22,50 @@
             </div>
 
             <div id="panel-body" class="panel-body">
+                <form id="search-form" class="search" autocomplete="off">
+                    <input id="search-input" type="search" list="municipios-list"
+                           placeholder="Buscar município…" aria-label="Buscar município">
+                    <datalist id="municipios-list"></datalist>
+                    <button type="submit">Buscar</button>
+                </form>
 
-            <form id="search-form" class="search" autocomplete="off">
-                <input id="search-input" type="search" list="municipios-list"
-                       placeholder="Buscar município…" aria-label="Buscar município">
-                <datalist id="municipios-list"></datalist>
-                <button type="submit">Buscar</button>
-            </form>
+                <div class="controls">
+                    <div class="uf-field" id="uf-field">
+                        <div class="field-head">
+                            <span id="uf-label">Estados (UF)</span>
+                            <button type="button" id="uf-clear" class="hidden">Limpar</button>
+                        </div>
+                        <div class="uf-box" id="uf-box">
+                            <span id="uf-chips" class="uf-chips"></span>
+                            <input id="uf-input" type="text" autocomplete="off" spellcheck="false"
+                                   placeholder="Todas · digite uma UF"
+                                   role="combobox" aria-expanded="false" aria-controls="uf-list"
+                                   aria-labelledby="uf-label">
+                        </div>
+                        <ul id="uf-list" class="uf-list hidden" role="listbox" aria-multiselectable="true"
+                            aria-labelledby="uf-label"></ul>
+                    </div>
 
-            <div class="controls">
-                <label>
-                    UF
-                    <select id="uf-filter" aria-label="Filtrar por UF">
-                        <option value="">Todas</option>
-                    </select>
-                </label>
+                    <div class="field-filter">
+                        <div class="field-head">
+                            <label for="field-select">Filtrar por</label>
+                        </div>
+                        <div class="field-row">
+                            <select id="field-select" aria-label="Campo do filtro">
+                                <option value="nome">Cidade</option>
+                                <option value="codigo_ibge">Código IBGE</option>
+                                <option value="ddd">DDD</option>
+                                <option value="fuso_horario">Fuso horário</option>
+                            </select>
+                            <input id="field-input" type="text" autocomplete="off" spellcheck="false"
+                                   placeholder="Digite o valor…" aria-label="Valor do filtro">
+                        </div>
+                    </div>
 
+                    <button type="button" id="locate-btn" class="primary">Minha localização</button>
+                </div>
 
-                <button type="button" id="locate-btn" class="primary">Minha localização</button>
-            </div>
-
-            <p id="status" class="status" role="status" aria-live="polite">Carregando dados…</p>
+                <p id="status" class="status" role="status" aria-live="polite">Carregando dados…</p>
             </div>
         </header>
 
@@ -53,7 +76,6 @@
             <h2 id="info-name"></h2>
             <dl id="info-details"></dl>
         </aside>
-
     </main>
 
     <script src="app.js"></script>

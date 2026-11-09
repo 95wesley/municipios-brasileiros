@@ -1,4 +1,4 @@
-/* Brazilian municipalities explorer: 2D map, search and browser geolocation.
+/* Brazilian municipalities explorer: 2D map, multi-state filter, search and geolocation.
  *
  * All data is loaded from the repository's JSON files, and all distance
  * calculations run in the browser. No coordinates are sent to any server.
@@ -13,6 +13,9 @@
     const OSM_TILES_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
+    const BRAZIL_CENTER = [-14.2, -51.9];
+    const BRAZIL_ZOOM = 4;
+
     const TIMEZONE_COLORS = {
         'America/Sao_Paulo': '#2563eb',
         'America/Porto_Velho': '#f97316',
@@ -23,15 +26,22 @@
     const CAPITAL_COLOR = '#facc15';
     const EARTH_RADIUS_KM = 6371.0088;
 
+    // Above this many points, markers are drawn smaller to keep the map readable.
+    const DENSE_THRESHOLD = 1000;
+
     const state = {
         municipios: [],
         estadosByCode: new Map(),
         estadosByUf: new Map(),
+        ufOptions: [],          // [{ uf, nome, regiao }], sorted by UF code
+        selectedUfs: new Set(), // empty set means "all states"
+        fieldFilter: { field: 'nome', value: '' }, // empty value means "no field filter"
+        ufVisibleOptions: [],   // options currently shown in the dropdown
+        ufActiveIndex: -1,      // keyboard highlight in the dropdown
         map: null,
         mapLayer: null,
         userMarker: null,
         userCircle: null,
-        ufFilter: '',
     };
 
     const el = {
@@ -39,7 +49,14 @@
         searchForm: document.getElementById('search-form'),
         searchInput: document.getElementById('search-input'),
         datalist: document.getElementById('municipios-list'),
-        ufFilter: document.getElementById('uf-filter'),
+        ufField: document.getElementById('uf-field'),
+        ufBox: document.getElementById('uf-box'),
+        ufChips: document.getElementById('uf-chips'),
+        ufInput: document.getElementById('uf-input'),
+        ufList: document.getElementById('uf-list'),
+        ufClear: document.getElementById('uf-clear'),
+        fieldSelect: document.getElementById('field-select'),
+        fieldInput: document.getElementById('field-input'),
         locateBtn: document.getElementById('locate-btn'),
         map: document.getElementById('map'),
         info: document.getElementById('info'),
@@ -81,9 +98,45 @@
         return estado ? estado.uf : '';
     }
 
+    /** True when the field filter has a value to match against. */
+    function hasFieldFilter() {
+        return state.fieldFilter.value.trim() !== '';
+    }
+
+    /** True when any filter (UF selection or field filter) narrows the municipalities. */
+    function hasActiveFilter() {
+        return state.selectedUfs.size > 0 || hasFieldFilter();
+    }
+
+    /** Check one municipality against the field filter. Matching is accent-insensitive. */
+    function matchesFieldFilter(m) {
+        if (!hasFieldFilter()) return true;
+        const { field } = state.fieldFilter;
+        const wanted = normalize(state.fieldFilter.value);
+
+        switch (field) {
+            case 'codigo_ibge':
+                return String(m.codigo_ibge).startsWith(wanted);
+            case 'ddd':
+                return String(m.ddd) === wanted;
+            case 'fuso_horario':
+                return normalize(m.fuso_horario).includes(wanted);
+            case 'nome':
+            default:
+                return normalize(m.nome).includes(wanted);
+        }
+    }
+
+    /** Municipalities that pass both the UF selection and the field filter. */
     function visibleMunicipios() {
-        if (!state.ufFilter) return state.municipios;
-        return state.municipios.filter((m) => m.uf === state.ufFilter);
+        return state.municipios.filter((m) => (
+            (state.selectedUfs.size === 0 || state.selectedUfs.has(m.uf))
+            && matchesFieldFilter(m)
+        ));
+    }
+
+    function sortedSelectedUfs() {
+        return [...state.selectedUfs].sort();
     }
 
     /** Brute-force nearest municipality. Fast enough for ~5,570 points. */
@@ -131,15 +184,11 @@
     // ---------- UI setup ----------
 
     function populateControls() {
-        const ufs = [...state.estadosByUf.keys()].sort();
-        for (const uf of ufs) {
-            const option = document.createElement('option');
-            option.value = uf;
-            option.textContent = uf;
-            el.ufFilter.appendChild(option);
-        }
+        state.ufOptions = [...state.estadosByUf.values()]
+            .sort((a, b) => a.codigo_uf - b.codigo_uf)
+            .map((e) => ({ uf: e.uf, nome: e.nome, regiao: e.regiao }));
 
-        // Datalist powers the browser's built-in autocomplete.
+        // Datalist powers the browser's built-in autocomplete for municipality names.
         const fragment = document.createDocumentFragment();
         for (const m of state.municipios) {
             const option = document.createElement('option');
@@ -151,7 +200,7 @@
 
     function initMap() {
         state.map = L.map(el.map, { preferCanvas: true, zoomControl: false })
-            .setView([-14.2, -51.9], 4);
+            .setView(BRAZIL_CENTER, BRAZIL_ZOOM);
         L.control.zoom({ position: 'topright' }).addTo(state.map);
 
         L.tileLayer(OSM_TILES_URL, {
@@ -161,7 +210,7 @@
 
         state.mapLayer = L.layerGroup().addTo(state.map);
 
-        // Clicking the map selects the nearest municipality to the click.
+        // Clicking the map selects the nearest visible municipality to the click.
         state.map.on('click', (event) => {
             const result = nearestMunicipio(event.latlng.lat, event.latlng.lng, visibleMunicipios());
             if (result) selectMunicipio(result.municipio);
@@ -171,17 +220,207 @@
     }
 
     function refreshMarkers() {
+        const visible = visibleMunicipios();
+        const dense = visible.length > DENSE_THRESHOLD;
+        const baseRadius = dense ? 2 : 3.5;
+
         state.mapLayer.clearLayers();
-        for (const m of visibleMunicipios()) {
+        for (const m of visible) {
             L.circleMarker([m.latitude, m.longitude], {
-                radius: m.capital ? 4 : 2,
+                radius: m.capital ? baseRadius + 1.5 : baseRadius,
                 color: colorFor(m),
                 fillColor: colorFor(m),
-                fillOpacity: 0.85,
-                weight: 0,
+                fillOpacity: 0.9,
+                weight: dense ? 0 : 1,
             })
                 .on('click', () => selectMunicipio(m))
                 .addTo(state.mapLayer);
+        }
+    }
+
+    /** Frame the map on the selected states, or on Brazil when no filter is active. */
+    function fitToSelection() {
+        if (!hasActiveFilter()) {
+            state.map.setView(BRAZIL_CENTER, BRAZIL_ZOOM);
+            return;
+        }
+        const visible = visibleMunicipios();
+        if (visible.length === 0) return;
+        const bounds = L.latLngBounds(visible.map((m) => [m.latitude, m.longitude]));
+        state.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
+    }
+
+    // ---------- UF multi-select ----------
+
+    function filteredUfOptions(query) {
+        const needle = normalize(query);
+        if (!needle) return state.ufOptions;
+        return state.ufOptions.filter((option) => (
+            normalize(option.uf).includes(needle) || normalize(option.nome).includes(needle)
+        ));
+    }
+
+    function renderChips() {
+        el.ufChips.replaceChildren();
+        for (const uf of sortedSelectedUfs()) {
+            const chip = document.createElement('span');
+            chip.className = 'uf-chip';
+            chip.textContent = uf;
+
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'uf-chip-remove';
+            remove.textContent = '×';
+            remove.setAttribute('aria-label', `Remover ${uf}`);
+            remove.addEventListener('click', (event) => {
+                event.stopPropagation();
+                toggleUf(uf);
+            });
+
+            chip.appendChild(remove);
+            el.ufChips.appendChild(chip);
+        }
+        el.ufClear.classList.toggle('hidden', state.selectedUfs.size === 0);
+    }
+
+    function renderUfList() {
+        state.ufVisibleOptions = filteredUfOptions(el.ufInput.value);
+        if (state.ufActiveIndex >= state.ufVisibleOptions.length) state.ufActiveIndex = -1;
+
+        el.ufList.replaceChildren();
+
+        if (state.ufVisibleOptions.length === 0) {
+            const empty = document.createElement('li');
+            empty.className = 'uf-empty';
+            empty.textContent = 'Nenhuma UF encontrada';
+            el.ufList.appendChild(empty);
+            return;
+        }
+
+        state.ufVisibleOptions.forEach((option, index) => {
+            const checked = state.selectedUfs.has(option.uf);
+            const item = document.createElement('li');
+            item.className = 'uf-option';
+            item.classList.toggle('checked', checked);
+            item.classList.toggle('active', index === state.ufActiveIndex);
+            item.setAttribute('role', 'option');
+            item.setAttribute('aria-selected', String(checked));
+            item.dataset.uf = option.uf;
+
+            const box = document.createElement('span');
+            box.className = 'check';
+            box.textContent = checked ? '✓' : '';
+
+            const code = document.createElement('span');
+            code.className = 'uf-code';
+            code.textContent = option.uf;
+
+            const name = document.createElement('span');
+            name.className = 'uf-name';
+            name.textContent = option.nome;
+
+            item.append(box, code, name);
+            // mousedown keeps focus in the input while the option is toggled.
+            item.addEventListener('mousedown', (event) => {
+                event.preventDefault();
+                toggleUf(option.uf);
+            });
+            el.ufList.appendChild(item);
+        });
+    }
+
+    function openUfList() {
+        renderUfList();
+        el.ufList.classList.remove('hidden');
+        el.ufInput.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeUfList() {
+        el.ufList.classList.add('hidden');
+        el.ufInput.setAttribute('aria-expanded', 'false');
+        state.ufActiveIndex = -1;
+    }
+
+    function applyUfFilter() {
+        refreshMarkers();
+        fitToSelection();
+
+        const count = visibleMunicipios().length;
+        const selected = sortedSelectedUfs();
+        const parts = [];
+        if (selected.length > 0) parts.push(`em ${selected.join(', ')}`);
+        if (hasFieldFilter()) parts.push(`com ${FIELD_LABELS[state.fieldFilter.field]} “${state.fieldFilter.value.trim()}”`);
+
+        setStatus(parts.length === 0
+            ? `${state.municipios.length} municípios.`
+            : `${count} municípios ${parts.join(' ')}.`);
+    }
+
+    /** Human-readable labels for the field filter options. */
+    const FIELD_LABELS = {
+        nome: 'cidade',
+        codigo_ibge: 'código IBGE',
+        ddd: 'DDD',
+        fuso_horario: 'fuso horário',
+    };
+
+    /** Add or remove one UF from the selection and refresh every related view. */
+    function toggleUf(uf) {
+        if (state.selectedUfs.has(uf)) {
+            state.selectedUfs.delete(uf);
+        } else {
+            state.selectedUfs.add(uf);
+        }
+        el.ufInput.value = '';
+        renderChips();
+        renderUfList();
+        applyUfFilter();
+    }
+
+    function clearUfSelection() {
+        state.selectedUfs.clear();
+        el.ufInput.value = '';
+        renderChips();
+        renderUfList();
+        applyUfFilter();
+    }
+
+    function moveActive(step) {
+        const count = state.ufVisibleOptions.length;
+        if (count === 0) return;
+        const next = state.ufActiveIndex + step;
+        state.ufActiveIndex = (next + count) % count;
+        renderUfList();
+        const active = el.ufList.querySelector('.uf-option.active');
+        if (active) active.scrollIntoView({ block: 'nearest' });
+    }
+
+    function onUfKeydown(event) {
+        const listOpen = !el.ufList.classList.contains('hidden');
+
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (!listOpen) openUfList();
+            moveActive(event.key === 'ArrowDown' ? 1 : -1);
+        } else if (event.key === 'Enter') {
+            // Enter toggles the highlighted UF, or the only match, and never submits the form.
+            event.preventDefault();
+            const options = state.ufVisibleOptions;
+            const typedCode = el.ufInput.value.trim().toUpperCase();
+            const exact = options.find((option) => option.uf === typedCode);
+            if (exact) {
+                // A typed UF code such as "AM" always wins over partial name matches.
+                toggleUf(exact.uf);
+            } else if (listOpen && state.ufActiveIndex >= 0) {
+                toggleUf(options[state.ufActiveIndex].uf);
+            } else if (options.length === 1) {
+                toggleUf(options[0].uf);
+            }
+        } else if (event.key === 'Backspace' && el.ufInput.value === '' && state.selectedUfs.size > 0) {
+            // Empty input + Backspace removes the last chip.
+            toggleUf(sortedSelectedUfs().pop());
+        } else if (event.key === 'Escape') {
+            closeUfList();
         }
     }
 
@@ -299,12 +538,30 @@
             }
         });
 
-        el.ufFilter.addEventListener('change', () => {
-            state.ufFilter = el.ufFilter.value;
-            refreshMarkers();
-            setStatus(state.ufFilter
-                ? `${visibleMunicipios().length} municípios em ${state.ufFilter}.`
-                : `${state.municipios.length} municípios.`);
+        // UF multi-select.
+        el.ufInput.addEventListener('focus', openUfList);
+        el.ufInput.addEventListener('input', () => {
+            state.ufActiveIndex = -1;
+            openUfList();
+        });
+        el.ufInput.addEventListener('keydown', onUfKeydown);
+        el.ufBox.addEventListener('click', () => el.ufInput.focus());
+        el.ufClear.addEventListener('click', clearUfSelection);
+        document.addEventListener('mousedown', (event) => {
+            if (!el.ufField.contains(event.target)) closeUfList();
+        });
+
+        // Field filter: the select chooses the field, the input supplies the value.
+        el.fieldSelect.addEventListener('change', () => {
+            state.fieldFilter.field = el.fieldSelect.value;
+            applyUfFilter();
+        });
+        el.fieldInput.addEventListener('input', () => {
+            state.fieldFilter.value = el.fieldInput.value;
+            applyUfFilter();
+        });
+        el.fieldInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') event.preventDefault();
         });
 
         el.locateBtn.addEventListener('click', locateUser);
