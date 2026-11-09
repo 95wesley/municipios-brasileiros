@@ -131,10 +131,11 @@ A tabela `estados` segue o mesmo padrão e está em [`sql/estados.sql`](sql/esta
 A pasta [`web/`](web/) tem um explorador estático, sem etapa de build:
 
 - **Globo 3D** com os 5.570 municípios, coloridos por fuso horário, com as capitais destacadas;
-- **Mapa 2D** com tiles do [OpenStreetMap](https://www.openstreetmap.org/copyright), que mostra os municípios em cada região;
+- **Mapa 2D** com tiles do [OpenStreetMap](https://www.openstreetmap.org/copyright), com os municípios de todas as regiões;
 - **Busca** por nome, sem diferenciar acentos nem maiúsculas;
 - **Filtro por UF**;
 - **Minha localização**: usa a geolocalização do navegador e encontra o município mais próximo de você.
+- **Painel compacto**: a busca fica no canto superior esquerdo, o município selecionado aparece no canto inferior direito e a legenda das cores fica embaixo à esquerda. O layout também funciona em celular.
 
 ![Mapa 2D com OpenStreetMap](docs/images/map.png)
 
