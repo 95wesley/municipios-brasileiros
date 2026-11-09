@@ -9,7 +9,10 @@ and this project uses [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Explorer: compact light panel matching the OpenStreetMap style; dark theme removed.
-- README: screenshots of the globe and map, quick-start table and dataset summary.
+- Explorer: 3D globe removed; the page is now a single 2D map.
+- Explorer: colour legend removed; the selected municipality card sits above the map attribution.
+- Explorer: the search panel can be collapsed with the – button.
+- README: map screenshot, quick-start table and dataset summary.
 
 ## [2.0.0]
 

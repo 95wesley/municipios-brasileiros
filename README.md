@@ -6,9 +6,9 @@
 
 Os **5.570 municípios** e as **27 UFs** do Brasil em arquivos `SQL`, `CSV` e `JSON`, com código IBGE, capital, código SIAFI, DDD, fuso horário e **latitude/longitude** de cada município.
 
-**[▶ Abrir o explorador 3D](https://95wesley.github.io/municipios-brasileiros/web/)** · [Dados (CSV)](csv/municipios.csv) · [Changelog](CHANGELOG.md)
+**[▶ Abrir o mapa interativo](https://95wesley.github.io/municipios-brasileiros/web/)** · [Dados (CSV)](csv/municipios.csv) · [Changelog](CHANGELOG.md)
 
-![Globo 3D com os municípios brasileiros](docs/images/globe.png)
+![Mapa com os municípios brasileiros](docs/images/map.png)
 
 ## Sumário
 
@@ -16,7 +16,7 @@ Os **5.570 municípios** e as **27 UFs** do Brasil em arquivos `SQL`, `CSV` e `J
 - [Os dados em números](#os-dados-em-números)
 - [Campos](#campos)
 - [Exemplos](#exemplos)
-- [Explorador web: globo 3D e mapa 2D](#explorador-web-globo-3d-e-mapa-2d)
+- [Explorador web: mapa interativo](#explorador-web-mapa-interativo)
 - [Servidor MCP](#servidor-mcp)
 - [Scripts e validação](#scripts-e-validação)
 - [Qualidade dos dados](#qualidade-dos-dados)
@@ -27,7 +27,7 @@ Os **5.570 municípios** e as **27 UFs** do Brasil em arquivos `SQL`, `CSV` e `J
 
 | Eu quero…                                   | Faça isto                                                                                   |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Explorar os municípios no mapa              | Abra o [explorador 3D](https://95wesley.github.io/municipios-brasileiros/web/)              |
+| Explorar os municípios no mapa              | Abra o [mapa interativo](https://95wesley.github.io/municipios-brasileiros/web/)            |
 | Usar os dados num banco ou planilha         | Baixe [`sql/`](sql/), [`csv/`](csv/) ou [`json/`](json/)                                    |
 | Consultar os dados num assistente de IA     | Configure o [servidor MCP](#servidor-mcp)                                                   |
 | Contribuir ou regenerar os arquivos         | Veja [Scripts e validação](#scripts-e-validação)                                            |
@@ -126,16 +126,15 @@ INSERT INTO municipios VALUES
 
 A tabela `estados` segue o mesmo padrão e está em [`sql/estados.sql`](sql/estados.sql).
 
-## Explorador web: globo 3D e mapa 2D
+## Explorador web: mapa interativo
 
 A pasta [`web/`](web/) tem um explorador estático, sem etapa de build:
 
-- **Globo 3D** com os 5.570 municípios, coloridos por fuso horário, com as capitais destacadas;
-- **Mapa 2D** com tiles do [OpenStreetMap](https://www.openstreetmap.org/copyright), com os municípios de todas as regiões;
+- **Mapa** com os 5.570 municípios, coloridos por fuso horário, com as capitais destacadas, usando tiles do [OpenStreetMap](https://www.openstreetmap.org/copyright);
 - **Busca** por nome, sem diferenciar acentos nem maiúsculas;
 - **Filtro por UF**;
 - **Minha localização**: usa a geolocalização do navegador e encontra o município mais próximo de você.
-- **Painel compacto**: a busca fica no canto superior esquerdo, o município selecionado aparece no canto inferior direito e a legenda das cores fica embaixo à esquerda. O layout também funciona em celular.
+- **Painel recolhível**: a busca fica no canto superior esquerdo e pode ser minimizada pelo botão **–**. O município selecionado aparece no canto inferior direito, acima da atribuição do mapa. O layout também funciona em celular.
 
 ![Mapa 2D com OpenStreetMap](docs/images/map.png)
 
@@ -237,7 +236,6 @@ Veja também o [CHANGELOG](CHANGELOG.md).
 
 - Dados de municípios e UFs: [IBGE](https://www.ibge.gov.br/) e [SIAFI](https://www.gov.br/tesouronacional/pt-br/siafi).
 - Mapa base: © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).
-- Globo 3D: [globe.gl](https://globe.gl/) (three.js), com textura da Terra de [three-globe](https://github.com/vasturiano/three-globe).
-- Mapa 2D: [Leaflet](https://leafletjs.com/).
+- Mapa: [Leaflet](https://leafletjs.com/).
 
 Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).

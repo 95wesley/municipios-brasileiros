@@ -65,6 +65,40 @@ body {
     font-weight: 600;
 }
 
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.panel-header h1 {
+    margin-bottom: 0;
+}
+
+.toggle {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    line-height: 1;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.toolbar.collapsed {
+    width: auto;
+    padding-bottom: 8px;
+}
+
+.toolbar.collapsed .panel-body {
+    display: none;
+}
+
+.toolbar.collapsed .panel-header h1 {
+    font-size: 0.9rem;
+}
+
 .search {
     display: flex;
     gap: 6px;
@@ -126,28 +160,6 @@ select:focus-visible {
     color: var(--muted);
 }
 
-.segmented {
-    display: inline-flex;
-}
-
-.segmented button {
-    border-radius: 0;
-}
-
-.segmented button:first-child {
-    border-radius: 6px 0 0 6px;
-}
-
-.segmented button:last-child {
-    border-radius: 0 6px 6px 0;
-    margin-left: -1px;
-}
-
-.segmented button.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-text);
-}
 
 .status {
     margin: 8px 0 0;
@@ -161,7 +173,7 @@ select:focus-visible {
     position: absolute;
     z-index: 10;
     right: 12px;
-    bottom: 40px;
+    bottom: 34px; /* sits above the Leaflet attribution bar */
     width: min(280px, calc(100% - 24px));
     padding: 12px 14px;
     border-radius: 10px;
@@ -202,42 +214,6 @@ select:focus-visible {
     font-size: 1rem;
 }
 
-/* Colour legend at the bottom left. */
-.legend {
-    position: absolute;
-    z-index: 10;
-    left: 12px;
-    bottom: 12px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 12px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    font-size: 0.72rem;
-    color: var(--muted);
-}
-
-.legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.dot {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-}
-
-.dot.capital {
-    background: #facc15;
-    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.35);
-}
-
 /* Phone layout: 8px gutters, no horizontal scroll. */
 @media (max-width: 600px) {
     .toolbar {
@@ -248,14 +224,8 @@ select:focus-visible {
 
     .info {
         right: 8px;
-        bottom: 36px;
+        bottom: 30px;
         width: calc(100% - 16px);
     }
 
-    .legend {
-        left: 8px;
-        right: 8px;
-        bottom: 8px;
-        font-size: 0.68rem;
-    }
 }

@@ -1,4 +1,4 @@
-/* Brazilian municipalities explorer: 3D globe, 2D map and geolocation.
+/* Brazilian municipalities explorer: 2D map, search and browser geolocation.
  *
  * All data is loaded from the repository's JSON files, and all distance
  * calculations run in the browser. No coordinates are sent to any server.
@@ -10,8 +10,6 @@
     const MUNICIPIOS_URL = '../json/municipios.json';
     const ESTADOS_URL = '../json/estados.json';
 
-    // Earth texture served by three-globe (pinned version).
-    const EARTH_TEXTURE_URL = 'https://unpkg.com/three-globe@2.31.0/example/img/earth-blue-marble.jpg';
     const OSM_TILES_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
     const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
@@ -29,14 +27,11 @@
         municipios: [],
         estadosByCode: new Map(),
         estadosByUf: new Map(),
-        globe: null,
         map: null,
         mapLayer: null,
         userMarker: null,
         userCircle: null,
-        selected: null,
         ufFilter: '',
-        mode: 'globe',
     };
 
     const el = {
@@ -45,15 +40,14 @@
         searchInput: document.getElementById('search-input'),
         datalist: document.getElementById('municipios-list'),
         ufFilter: document.getElementById('uf-filter'),
-        modeGlobe: document.getElementById('mode-globe'),
-        modeMap: document.getElementById('mode-map'),
         locateBtn: document.getElementById('locate-btn'),
-        globe: document.getElementById('globe'),
         map: document.getElementById('map'),
         info: document.getElementById('info'),
         infoName: document.getElementById('info-name'),
         infoDetails: document.getElementById('info-details'),
         infoClose: document.getElementById('info-close'),
+        toolbar: document.querySelector('.toolbar'),
+        togglePanel: document.getElementById('toggle-panel'),
     };
 
     // ---------- helpers ----------
@@ -80,13 +74,6 @@
     function colorFor(municipio) {
         if (municipio.capital) return CAPITAL_COLOR;
         return TIMEZONE_COLORS[municipio.fuso_horario] || DEFAULT_COLOR;
-    }
-
-    /** Escape text before inserting it into HTML strings. */
-    function escapeHtml(value) {
-        return String(value).replace(/[&<>"']/g, (char) => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-        })[char]);
     }
 
     function ufOf(municipio) {
@@ -162,31 +149,10 @@
         el.datalist.appendChild(fragment);
     }
 
-    function initGlobe() {
-        state.globe = Globe()(el.globe)
-            .globeImageUrl(EARTH_TEXTURE_URL)
-            .backgroundColor('rgba(0,0,0,0)')
-            .atmosphereColor('#60a5fa')
-            .atmosphereAltitude(0.18)
-            .pointLat('latitude')
-            .pointLng('longitude')
-            .pointColor(colorFor)
-            .pointAltitude((m) => (m.capital ? 0.06 : 0.01))
-            .pointRadius((m) => (m.capital ? 0.4 : 0.18))
-            .pointLabel((m) => `<b>${escapeHtml(m.nome)}</b> – ${escapeHtml(m.uf)}`)
-            .onPointClick((m) => selectMunicipio(m))
-            .ringColor(() => 'rgba(250, 204, 21, 0.9)')
-            .ringMaxRadius(3)
-            .ringPropagationSpeed(2)
-            .ringRepeatPeriod(900);
-
-        state.globe.pointOfView({ lat: -14, lng: -52, altitude: 2.2 }, 0);
-        refreshGlobe();
-    }
-
     function initMap() {
-        state.map = L.map(el.map, { preferCanvas: true, zoomControl: true })
+        state.map = L.map(el.map, { preferCanvas: true, zoomControl: false })
             .setView([-14.2, -51.9], 4);
+        L.control.zoom({ position: 'topright' }).addTo(state.map);
 
         L.tileLayer(OSM_TILES_URL, {
             maxZoom: 19,
@@ -201,15 +167,10 @@
             if (result) selectMunicipio(result.municipio);
         });
 
-        refreshMap();
+        refreshMarkers();
     }
 
-    function refreshGlobe() {
-        state.globe.pointsData(visibleMunicipios());
-    }
-
-    function refreshMap() {
-        if (!state.map) return;
+    function refreshMarkers() {
         state.mapLayer.clearLayers();
         for (const m of visibleMunicipios()) {
             L.circleMarker([m.latitude, m.longitude], {
@@ -222,11 +183,6 @@
                 .on('click', () => selectMunicipio(m))
                 .addTo(state.mapLayer);
         }
-    }
-
-    function refreshAll() {
-        refreshGlobe();
-        refreshMap();
     }
 
     // ---------- selection ----------
@@ -258,34 +214,8 @@
     }
 
     function selectMunicipio(m, distanceKm) {
-        state.selected = m;
         showInfo(distanceKm !== undefined ? { ...m, distanceKm } : m);
-
-        // Pulse ring on the globe and a centered view on both maps.
-        state.globe.ringsData([m]);
-        state.globe.pointOfView({ lat: m.latitude, lng: m.longitude, altitude: 0.6 }, 1000);
-
-        if (state.map) {
-            state.map.flyTo([m.latitude, m.longitude], Math.max(state.map.getZoom(), 9));
-        }
-    }
-
-    // ---------- modes ----------
-
-    function setMode(mode) {
-        state.mode = mode;
-        const isGlobe = mode === 'globe';
-        el.globe.classList.toggle('hidden', !isGlobe);
-        el.map.classList.toggle('hidden', isGlobe);
-        el.modeGlobe.classList.toggle('active', isGlobe);
-        el.modeMap.classList.toggle('active', !isGlobe);
-        el.modeGlobe.setAttribute('aria-pressed', String(isGlobe));
-        el.modeMap.setAttribute('aria-pressed', String(!isGlobe));
-
-        if (!isGlobe) {
-            if (!state.map) initMap();
-            state.map.invalidateSize();
-        }
+        state.map.flyTo([m.latitude, m.longitude], Math.max(state.map.getZoom(), 9));
     }
 
     // ---------- geolocation ----------
@@ -299,7 +229,6 @@
     function showUserLocation(lat, lon, accuracy) {
         if (state.userMarker) state.userMarker.remove();
         if (state.userCircle) state.userCircle.remove();
-        if (!state.map) initMap();
 
         state.userMarker = L.marker([lat, lon]).addTo(state.map)
             .bindPopup('Você está aqui');
@@ -372,16 +301,22 @@
 
         el.ufFilter.addEventListener('change', () => {
             state.ufFilter = el.ufFilter.value;
-            refreshAll();
+            refreshMarkers();
             setStatus(state.ufFilter
                 ? `${visibleMunicipios().length} municípios em ${state.ufFilter}.`
                 : `${state.municipios.length} municípios.`);
         });
 
-        el.modeGlobe.addEventListener('click', () => setMode('globe'));
-        el.modeMap.addEventListener('click', () => setMode('map'));
         el.locateBtn.addEventListener('click', locateUser);
         el.infoClose.addEventListener('click', () => el.info.classList.add('hidden'));
+
+        el.togglePanel.addEventListener('click', () => {
+            const collapsed = el.toolbar.classList.toggle('collapsed');
+            el.togglePanel.textContent = collapsed ? '+' : '–';
+            el.togglePanel.setAttribute('aria-expanded', String(!collapsed));
+            el.togglePanel.setAttribute('aria-label', collapsed ? 'Expandir painel' : 'Minimizar painel');
+            el.togglePanel.title = collapsed ? 'Expandir' : 'Minimizar';
+        });
     }
 
     // ---------- start ----------
@@ -398,7 +333,7 @@
         }
 
         populateControls();
-        initGlobe();
+        initMap();
         bindEvents();
         setStatus(`${state.municipios.length} municípios carregados.`);
     }

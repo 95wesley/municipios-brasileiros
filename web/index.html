@@ -3,13 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Municípios Brasileiros · Globo 3D</title>
-    <meta name="description" content="Explore os 5.570 municípios brasileiros em um globo 3D e num mapa 2D, com geolocalização.">
+    <title>Municípios Brasileiros · Mapa</title>
+    <meta name="description" content="Explore os 5.570 municípios brasileiros em um mapa, com busca e geolocalização.">
 
     <!-- Leaflet (2D map). Version pinned. -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
-    <!-- globe.gl (3D globe, built on three.js). Version pinned. -->
-    <script src="https://unpkg.com/globe.gl@2.27.2/dist/globe.gl.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 
     <link rel="stylesheet" href="style.css">
@@ -17,7 +15,13 @@
 <body>
     <main class="app">
         <header class="toolbar">
-            <h1>Municípios Brasileiros</h1>
+            <div class="panel-header">
+                <h1>Municípios Brasileiros</h1>
+                <button type="button" id="toggle-panel" class="toggle" aria-expanded="true"
+                        aria-controls="panel-body" aria-label="Minimizar painel" title="Minimizar">–</button>
+            </div>
+
+            <div id="panel-body" class="panel-body">
 
             <form id="search-form" class="search" autocomplete="off">
                 <input id="search-input" type="search" list="municipios-list"
@@ -34,19 +38,15 @@
                     </select>
                 </label>
 
-                <div class="segmented" role="group" aria-label="Modo de visualização">
-                    <button type="button" id="mode-globe" class="active" aria-pressed="true">Globo 3D</button>
-                    <button type="button" id="mode-map" aria-pressed="false">Mapa 2D</button>
-                </div>
 
                 <button type="button" id="locate-btn" class="primary">Minha localização</button>
             </div>
 
             <p id="status" class="status" role="status" aria-live="polite">Carregando dados…</p>
+            </div>
         </header>
 
-        <section id="globe" class="view" aria-label="Globo 3D"></section>
-        <section id="map" class="view hidden" aria-label="Mapa 2D"></section>
+        <section id="map" class="view" aria-label="Mapa"></section>
 
         <aside id="info" class="info hidden" aria-live="polite">
             <button type="button" id="info-close" class="close" aria-label="Fechar">×</button>
@@ -54,13 +54,6 @@
             <dl id="info-details"></dl>
         </aside>
 
-        <footer class="legend" aria-label="Legenda">
-            <span><i class="dot capital"></i>Capital</span>
-            <span><i class="dot" style="background:#2563eb"></i>América/São_Paulo</span>
-            <span><i class="dot" style="background:#f97316"></i>América/Porto_Velho</span>
-            <span><i class="dot" style="background:#16a34a"></i>América/Rio_Branco</span>
-            <span><i class="dot" style="background:#a855f7"></i>América/Noronha</span>
-        </footer>
     </main>
 
     <script src="app.js"></script>
